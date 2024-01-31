@@ -2,18 +2,14 @@ import arcpy
 import os
 arcpy.env.overwriteOutput = True
 
-print('load input features and make layer')
-base_dir = 'D:/evaluate'
-version = 'model_576_230111'
+base_dir = 'D:/evaluate/model_576_240118'
+version = 'iew100'
 evaluation_path = os.path.join(base_dir,'label')
 
-cal_area=False
+cal_area=True
 
 #calculate area of label
-label_polygons = os.path.join(evaluation_path , 'test_polygon.shp')
-if cal_area:
-    arcpy.AddField_management(label_polygons, 'area', "Double")
-    arcpy.CalculateulateField_management(label_polygons, "area",  "!shape.geodesicArea@SQUAREKILOMETERS!", "PYTHON_9.3")
+label_polygons = os.path.join(evaluation_path , 'test_polygons.shp')
 
 arcpy.env.workspace = label_polygons
 cursor =arcpy.da.SearchCursor(label_polygons, ["area"])
@@ -23,10 +19,7 @@ for row in cursor:
 
 #calculate area of prediction
 predicted_polygon_dir =os.path.join(base_dir,version)
-prediction_polygons = os.path.join(predicted_polygon_dir , 'predicted_polygon.shp')
-if cal_area:
-    arcpy.AddField_management(prediction_polygons, 'area', "Double")
-    arcpy.CalculateField_management(prediction_polygons, "area",  "!shape.geodesicArea@SQUAREKILOMETERS!", "PYTHON_9.3")
+prediction_polygons = os.path.join(predicted_polygon_dir , 'predicted_polygons.shp')
 
 arcpy.env.workspace = prediction_polygons
 cursor =arcpy.da.SearchCursor(prediction_polygons, ["area"])
@@ -36,9 +29,6 @@ for row in cursor:
 
 #calculate area of intersection
 polygons_intersection = os.path.join(predicted_polygon_dir,"prediction_intersect_label.shp")
-if cal_area:
-    arcpy.AddField_management(polygons_intersection, 'area', "Double")
-    arcpy.CalculateField_management(polygons_intersection, "area",  "!shape.geodesicArea@SQUAREKILOMETERS!", "PYTHON_9.3")
 
 arcpy.env.workspace = polygons_intersection
 cursor =arcpy.da.SearchCursor(polygons_intersection, ["area"])
@@ -46,13 +36,13 @@ area_intersection=0
 for row in cursor:
     area_intersection=area_intersection+row[0]#sum area
 
-test_region = os.path.join(evaluation_path, 'test_region.shp')
+test_regions = os.path.join(evaluation_path, 'test_regions.shp')
 if cal_area:
-    arcpy.AddField_management(test_region, 'area', "Double")
-    arcpy.CalculateField_management(test_region, "area",  "!shape.geodesicArea@SQUAREKILOMETERS!", "PYTHON_9.3")
+    arcpy.AddField_management(test_regions, 'area', "Double")
+    arcpy.CalculateField_management(test_regions, "area",  "!shape.geodesicArea@SQUAREKILOMETERS!", "PYTHON_9.3")
 
-arcpy.env.workspace = test_region
-cursor =arcpy.da.SearchCursor(test_region, ["area"])
+arcpy.env.workspace = test_regions
+cursor =arcpy.da.SearchCursor(test_regions, ["area"])
 patch_area=0
 for row in cursor:
     patch_area=patch_area+row[0]#sum area
